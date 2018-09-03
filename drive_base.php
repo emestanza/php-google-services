@@ -1,9 +1,16 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
+/*
 if (php_sapi_name() != 'cli') {
     throw new Exception('This application must be run on the command line.');
 }
+*/
+
+define("CREDENTIALS_PATH", "credentials/credentials.json");
+define("TOKEN_PATH", "token.json");
+define("APP_NAME", "MVCS - Google PHP API Service");
+
 
 /**
  * Returns an authorized API client.
@@ -12,16 +19,17 @@ if (php_sapi_name() != 'cli') {
 function getClient()
 {
     $client = new Google_Client();
-    $client->setApplicationName('Google Drive API PHP Quickstart');
+    $client->setApplicationName(APP_NAME);
     $client->setScopes(Google_Service_Drive::DRIVE_METADATA_READONLY);
     $client->setScopes(Google_Service_Drive::DRIVE_FILE);
-    $client->setAuthConfig('credentials/credentials.json');
+    $client->setAuthConfig(CREDENTIALS_PATH);
     $client->setAccessType('offline');
 
     // Load previously authorized credentials from a file.
-    $credentialsPath = 'token.json';
-    if (file_exists($credentialsPath)) {
-        $accessToken = json_decode(file_get_contents($credentialsPath), true);
+    //$credentialsPath = 'token.json';
+
+    if (file_exists(TOKEN_PATH)) {
+        $accessToken = json_decode(file_get_contents(TOKEN_PATH), true);
     } else {
         // Request authorization from the user.
         $authUrl = $client->createAuthUrl();
@@ -53,36 +61,3 @@ function getClient()
     }
     return $client;
 }
-
-
-// Get the API client and construct the service object.
-$client = getClient();
-$service = new Google_Service_Drive($client);
-
-// Print the names and IDs for up to 10 files.
-/*$optParams = array(
-  'pageSize' => 10,
-  'fields' => 'nextPageToken, files(id, name)'
-);
-$results = $service->files->listFiles($optParams);
-
-if (count($results->getFiles()) == 0) {
-    print "No files found.\n";
-} else {
-    print "Files:\n";
-    foreach ($results->getFiles() as $file) {
-        printf("%s (%s)\n", $file->getName(), $file->getId());
-    }
-}*/
-
-$fileMetadata = new Google_Service_Drive_DriveFile(array(
-    'name' => 'photo.jpg',
-    'parents' => array('12WY926dH27SFPpXgaxczkXyeW_64tvy0')));
-
-$content = file_get_contents('files/photo.jpg');
-$file = $service->files->create($fileMetadata, array(
-    'data' => $content,
-    'mimeType' => 'image/jpeg',
-    'uploadType' => 'multipart',
-    'fields' => 'id'));
-printf("File ID: %s\n", $file->id);
