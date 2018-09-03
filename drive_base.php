@@ -20,8 +20,9 @@ function getClient()
 {
     $client = new Google_Client();
     $client->setApplicationName(APP_NAME);
-    $client->setScopes(Google_Service_Drive::DRIVE_METADATA_READONLY);
+    $client->setScopes(Google_Service_Drive::DRIVE_METADATA);
     $client->setScopes(Google_Service_Drive::DRIVE_FILE);
+    $client->setScopes(Google_Service_Drive::DRIVE);
     $client->setAuthConfig(CREDENTIALS_PATH);
     $client->setAccessType('offline');
 
@@ -46,18 +47,18 @@ function getClient()
         }
 
         // Store the credentials to disk.
-        if (!file_exists(dirname($credentialsPath))) {
-            mkdir(dirname($credentialsPath), 0700, true);
+        if (!file_exists(dirname(TOKEN_PATH))) {
+            mkdir(dirname(TOKEN_PATH), 0700, true);
         }
-        file_put_contents($credentialsPath, json_encode($accessToken));
-        printf("Credentials saved to %s\n", $credentialsPath);
+        file_put_contents(TOKEN_PATH, json_encode($accessToken));
+        printf("Credentials saved to %s\n", TOKEN_PATH);
     }
     $client->setAccessToken($accessToken);
 
     // Refresh the token if it's expired.
     if ($client->isAccessTokenExpired()) {
         $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
-        file_put_contents($credentialsPath, json_encode($client->getAccessToken()));
+        file_put_contents(TOKEN_PATH, json_encode($client->getAccessToken()));
     }
     return $client;
 }

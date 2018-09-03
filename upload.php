@@ -19,7 +19,15 @@ $content = file_get_contents($_FILES['fileToUpload']['tmp_name']);
 
 $file = $service->files->create($fileMetadata, array(
     'data' => $content,
-    'mimeType' => 'image/jpeg',
+    'mimeType' => 'application/octet-stream',
     'uploadType' => 'multipart',
     'fields' => 'id'));
-printf("File ID: %s\n", $file->id);
+
+$response = array('success' => false, 'message' => "error" );
+
+if ($file->id != null)
+    $response = array('success' => true, 'message' => "https://drive.google.com/file/d/". $file->id ."/view" );
+    
+
+echo json_encode($response);
+exit;
