@@ -1,20 +1,14 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
-/*
-if (php_sapi_name() != 'cli') {
-    throw new Exception('This application must be run on the command line.');
-}
-*/
-
 define("CREDENTIALS_PATH", "credentials/credentials.json");
 define("TOKEN_PATH", "token.json");
 define("APP_NAME", "MVCS - Google PHP API Service");
 
 
 /**
- * Returns an authorized API client.
- * @return Google_Client the authorized client object
+ * Retorna un cliente de API autorizado
+ * @return Google_Client objeto cliente autorizado
  */
 function getClient()
 {
@@ -26,13 +20,10 @@ function getClient()
     $client->setAuthConfig(CREDENTIALS_PATH);
     $client->setAccessType('offline');
 
-    // Load previously authorized credentials from a file.
-    //$credentialsPath = 'token.json';
-
     if (file_exists(TOKEN_PATH)) {
         $accessToken = json_decode(file_get_contents(TOKEN_PATH), true);
     } else {
-        // Request authorization from the user.
+        //Realiza petición al usuario para autorización 
         $authUrl = $client->createAuthUrl();
         printf("Open the following link in your browser:\n%s\n", $authUrl);
         print 'Enter verification code: ';
