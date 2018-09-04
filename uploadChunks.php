@@ -5,10 +5,23 @@ require_once "drive_base.php";
 $client = getClient();
 $service = new Google_Service_Drive($client);
 
+
+
+$currentDir = getcwd();
+$uploadDirectory = "/uploads/";
+
+$fileName = $_FILES['fileToUpload']['name'];
+$fileSize = $_FILES['fileToUpload']['size'];
+$fileTmpName  = $_FILES['fileToUpload']['tmp_name'];
+$fileType = $_FILES['fileToUpload']['type'];
+$fileExtension = strtolower(end(explode('.',$fileName)));
+
+$uploadPath = $currentDir . $uploadDirectory . basename($fileName); 
+
   /************************************************
    * We'll setup an empty 20MB file to upload.
    ************************************************/
-  DEFINE("TESTFILE", 'files/How_to_Change_the_World_v1.01_A4.pdf');
+  /*DEFINE("TESTFILE", 'files/How_to_Change_the_World_v1.01_A4.pdf');
   if (!file_exists(TESTFILE)) {
     $fh = fopen(TESTFILE, 'w');
     fseek($fh, 1024*1024*95);
@@ -17,10 +30,10 @@ $service = new Google_Service_Drive($client);
   }
   else{
       echo "bien";
-  }
+  }*/
 
   $file = new Google_Service_Drive_DriveFile(array(
-    'name' => "Big File",
+    'name' => $_FILES["fileToUpload"]["name"],
     'parents' => array('12WY926dH27SFPpXgaxczkXyeW_64tvy0')));
 
   //$file->name = "Big File";
@@ -39,7 +52,7 @@ $media = new Google_Http_MediaFileUpload(
     true,
     $chunkSizeBytes
 );
-$media->setFileSize(filesize(TESTFILE));
+$media->setFileSize($_FILES['fileToUpload']['size']);
 
 //echo "fdfdss";
 
@@ -47,7 +60,14 @@ $media->setFileSize(filesize(TESTFILE));
 // Upload the various chunks. $status will be false until the process is
   // complete.
   $status = false;
-  $handle = fopen(TESTFILE, "rb");
+  $didUpload = move_uploaded_file($fileTmpName, $uploadPath);
+  $handle = null;
+
+  if ($didUpload) {
+      //echo "The file " . basename($fileName) . " has been uploaded";
+      $handle = fopen($uploadPath, "rb");
+  }
+
   while (!$status && !feof($handle)) {
     // read until you get $chunkSizeBytes from TESTFILE
     // fread will never return more than 8192 bytes if the stream is read buffered and it does not represent a plain file
@@ -62,6 +82,7 @@ $media->setFileSize(filesize(TESTFILE));
     $result = $status;
   }
   fclose($handle);
+  unlink($uploadPath);
 
 
 function readVideoChunk ($handle, $chunkSize)
