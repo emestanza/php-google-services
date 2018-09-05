@@ -5,8 +5,6 @@ require_once "drive_base.php";
 $client = getClient();
 $service = new Google_Service_Drive($client);
 
-
-
 $currentDir = getcwd();
 $uploadDirectory = "/uploads/";
 
@@ -16,29 +14,15 @@ $fileTmpName  = $_FILES['fileToUpload']['tmp_name'];
 $fileType = $_FILES['fileToUpload']['type'];
 $fileExtension = strtolower(end(explode('.',$fileName)));
 
-$uploadPath = $currentDir . $uploadDirectory . basename($fileName); 
-
-  /************************************************
-   * We'll setup an empty 20MB file to upload.
-   ************************************************/
-  /*DEFINE("TESTFILE", 'files/How_to_Change_the_World_v1.01_A4.pdf');
-  if (!file_exists(TESTFILE)) {
-    $fh = fopen(TESTFILE, 'w');
-    fseek($fh, 1024*1024*95);
-    fwrite($fh, "!", 1);
-    fclose($fh);
-  }
-  else{
-      echo "bien";
-  }*/
+$uploadPath = $currentDir . $uploadDirectory . uniqid() . ".". $fileExtension; 
 
   $file = new Google_Service_Drive_DriveFile(array(
-    'name' => $_FILES["fileToUpload"]["name"],
+    'name' => $fileName,
     'parents' => array('12WY926dH27SFPpXgaxczkXyeW_64tvy0')));
 
-  //$file->name = "Big File";
   $chunkSizeBytes = 1 * 1024 * 1024;
-
+  //$chunkSizeBytes = 524288;
+  
   // Call the API with the media upload, defer so it doesn't immediately return.
   $client->setDefer(true);
   $request = $service->files->create($file);
@@ -47,24 +31,20 @@ $uploadPath = $currentDir . $uploadDirectory . basename($fileName);
 $media = new Google_Http_MediaFileUpload(
     $client,
     $request,
-    'application/pdf',
+    $fileType,
     null,
     true,
     $chunkSizeBytes
 );
 $media->setFileSize($_FILES['fileToUpload']['size']);
 
-//echo "fdfdss";
-
-
-// Upload the various chunks. $status will be false until the process is
+  // Upload the various chunks. $status will be false until the process is
   // complete.
   $status = false;
   $didUpload = move_uploaded_file($fileTmpName, $uploadPath);
   $handle = null;
 
-  if ($didUpload) {
-      //echo "The file " . basename($fileName) . " has been uploaded";
+  if ($didUpload){ 
       $handle = fopen($uploadPath, "rb");
   }
 
@@ -72,7 +52,8 @@ $media->setFileSize($_FILES['fileToUpload']['size']);
     // read until you get $chunkSizeBytes from TESTFILE
     // fread will never return more than 8192 bytes if the stream is read buffered and it does not represent a plain file
     // An example of a read buffered file is when reading from a URL
-    $chunk = readVideoChunk($handle, $chunkSizeBytes);
+    //$chunk = readVideoChunk($handle, $chunkSizeBytes);
+    $chunk = fread($handle, $chunkSizeBytes);
     $status = $media->nextChunk($chunk);
   }
   // The final value of $status will be the data from the API for the object
