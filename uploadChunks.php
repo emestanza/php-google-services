@@ -11,9 +11,14 @@ $fileTmpName  = $_FILES['fileToUpload']['tmp_name'];
 $fileType = $_FILES['fileToUpload']['type'];
 //$fileExtension = strtolower(end(explode('.',$fileName)));
 
+$data = $_POST['sender_information'];
+$json_data = json_decode($data , true);
+$folder = $json_data['folder'];
+
 $file = new Google_Service_Drive_DriveFile(array(
   'name' => $fileName,
-  'parents' => array('12WY926dH27SFPpXgaxczkXyeW_64tvy0')));
+  'parents' => array($folder)
+));
 
 $chunkSizeBytes = 1 * 1024 * 1024;
 
